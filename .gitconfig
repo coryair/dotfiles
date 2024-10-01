@@ -3,3 +3,11 @@
 [user]
 	email = cory@coryair.com
 	name = Cory Hernandez
+[alias]
+  chop = "! git branch | grep -v '^*' | xargs git branch -D"
+  reboot = "! git checkout main; git pull; git chop"
+  mr = "! git push -o merge_request.create"
+[url "git@git.alteryx.com:"]
+	insteadOf = https://git.alteryx.com/
+[push]
+	autoSetupRemote = true
