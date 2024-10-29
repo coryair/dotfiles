@@ -11,3 +11,6 @@
 	insteadOf = https://git.alteryx.com/
 [push]
 	autoSetupRemote = true
+
+[includeIf "gitdir:/Users/cory.hernandez/code/"]
+    path = /Users/cory.hernandez/code/.gitconfig
