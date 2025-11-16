@@ -1,0 +1,30 @@
+[init]
+	defaultBranch = main
+[user]
+	email = cory@coryair.com
+	name = Cory Hernandez
+[alias]
+  chop = "! git branch | grep -v '^*' | xargs git branch -D"
+  reboot = "! git checkout main; git pull; git chop"
+  mr = "! git push -o merge_request.create"
+  rbmain = "!f() { git_rebase_main \"$@\"; }; f"
+
+[url "git@git.alteryx.com:"]
+	insteadOf = https://git.alteryx.com/
+[push]
+	autoSetupRemote = true
+
+[includeIf "gitdir:/Users/cory.hernandez/code/"]
+    path = /Users/cory.hernandez/code/.gitconfig
+
+[column]
+	ui = auto
+[branch]
+	sort = -committerdate
+[maintenance]
+	repo = /Users/cory.hernandez/code/apod/apod_infra_drivers
+	repo = /Users/cory.hernandez/code/apod/apod_infra
+[credential "https://git.alteryx.com"]
+	useHttpPath = true
+
+
