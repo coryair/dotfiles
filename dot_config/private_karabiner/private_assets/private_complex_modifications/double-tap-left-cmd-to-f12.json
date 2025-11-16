@@ -1,0 +1,30 @@
+{
+  "title": "Double-tap Left Command → F12 (force standard F12)",
+  "rules": [
+    {
+      "description": "Double-tap left ⌘ within 300ms to send real F12 (uses fn+F12 to bypass media keys)",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": { "key_code": "left_command", "modifiers": { "optional": ["any"] } },
+          "conditions": [ { "type": "variable_if", "name": "lcmd_tap", "value": 1 } ],
+          "to": [
+            { "set_variable": { "name": "lcmd_tap", "value": 0 } },
+            { "key_code": "f12", "modifiers": ["fn"] }
+          ]
+        },
+        {
+          "type": "basic",
+          "from": { "key_code": "left_command", "modifiers": { "optional": ["any"] } },
+          "to": [ { "key_code": "left_command" } ],
+          "to_if_alone": [ { "set_variable": { "name": "lcmd_tap", "value": 1 } } ],
+          "to_delayed_action": {
+            "to_if_invoked": [ { "set_variable": { "name": "lcmd_tap", "value": 0 } } ],
+            "to_if_canceled": [ { "set_variable": { "name": "lcmd_tap", "value": 0 } } ]
+          },
+          "parameters": { "basic.to_if_alone_timeout_milliseconds": 300 }
+        }
+      ]
+    }
+  ]
+}
