@@ -1,0 +1,46 @@
+{
+  "actions" : [
+    {
+      "key" : "t",
+      "type" : "application",
+      "value" : "/Applications/WezTerm.app"
+    },
+    {
+      "key" : "f",
+      "type" : "application",
+      "value" : "/Applications/Firefox.app"
+    },
+    {
+      "key" : "s",
+      "type" : "application",
+      "value" : "/Applications/Slack.app"
+    },
+    {
+      "key" : "e",
+      "type" : "application",
+      "value" : "/Applications/Microsoft Outlook.app"
+    },
+    {
+      "key" : "c",
+      "type" : "application",
+      "value" : "/Applications/Visual Studio Code.app"
+    },
+    {
+      "key" : "o",
+      "type" : "application",
+      "value" : "/Applications/Obsidian.app"
+    },
+    {
+      "actions" : [
+        {
+          "key" : "t",
+          "type" : "application",
+          "value" : "/Applications/Microsoft Teams.app"
+        }
+      ],
+      "key" : "m",
+      "type" : "group"
+    }
+  ],
+  "type" : "group"
+}
