@@ -1,0 +1,7 @@
+IgnoreUnknown UseKeychain
+Host git.alteryx.com
+  HostName git.alteryx.com
+  User git
+  IdentityFile ~/.ssh/id_ed25519
+  AddKeysToAgent yes
+  UseKeychain yes
