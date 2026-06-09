@@ -5,6 +5,22 @@
             "complex_modifications": {
                 "rules": [
                     {
+                        "description": "Backspace sends Forward Delete while Caps/Hyper is held",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "delete_or_backspace",
+                                    "modifiers": {
+                                        "mandatory": ["left_command", "left_control", "left_option", "left_shift"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "delete_forward" }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "manipulators": [
                             {
                                 "description": "Change caps_lock to command+control+option+shift.",
