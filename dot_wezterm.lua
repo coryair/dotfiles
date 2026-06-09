@@ -60,6 +60,16 @@ config.keys = {
         mods = "CTRL",
       },
     },
+    -- Shift + Enter → Newline in Claude Code
+    {
+      key = "Enter",
+      mods = "SHIFT",
+      action = wezterm.action.SendString("\x1b[13;2u"),
+    },
   }
+
+-- APOD dev env auto-start
+config.set_environment_variables = config.set_environment_variables or {}
+config.set_environment_variables.APOD_DEV_ENV_AUTO_START = "1"
 
 return config
