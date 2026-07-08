@@ -1,0 +1,44 @@
+# Converted from ~/.wezterm.lua.
+
+font-family = "MesloLGS Nerd Font Mono"
+font-size = 15
+
+foreground = #CBE0F0
+background = #011423
+cursor-color = #47FF9C
+cursor-text = #011423
+selection-foreground = #CBE0F0
+selection-background = #033259
+
+palette = 0=#214969
+palette = 1=#E52E2E
+palette = 2=#44FFB1
+palette = 3=#FFE073
+palette = 4=#0FC5ED
+palette = 5=#A277FF
+palette = 6=#24EAF7
+palette = 7=#24EAF7
+palette = 8=#214969
+palette = 9=#E52E2E
+palette = 10=#44FFB1
+palette = 11=#FFE073
+palette = 12=#A277FF
+palette = 13=#A277FF
+palette = 14=#24EAF7
+palette = 15=#24EAF7
+
+# Keep the tab bar hidden, matching enable_tab_bar = false in WezTerm.
+window-show-tab-bar = never
+
+# Option + Left/Right: shell word movement.
+keybind = opt+left=esc:b
+keybind = opt+right=esc:f
+
+# Command + Left/Right: shell line movement.
+keybind = cmd+left=text:\x01
+keybind = cmd+right=text:\x05
+
+# Shift + Enter: newline sequence used by Claude Code.
+keybind = shift+enter=text:\x1b[13;2u
+
+env = APOD_DEV_ENV_AUTO_START=1
