@@ -1,3 +1,5 @@
 [user]
 	name = Cory Hernandez
 	email = cory.hernandez@alteryx.com
+[push]
+	autoSetupRemote = true

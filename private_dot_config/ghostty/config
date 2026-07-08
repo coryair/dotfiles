@@ -1,7 +1,7 @@
 # Converted from ~/.wezterm.lua.
 
 font-family = "MesloLGS Nerd Font Mono"
-font-size = 15
+font-size = 20
 
 foreground = #CBE0F0
 background = #011423
@@ -38,7 +38,3 @@ keybind = opt+right=esc:f
 keybind = cmd+left=text:\x01
 keybind = cmd+right=text:\x05
 
-# Shift + Enter: newline sequence used by Claude Code.
-keybind = shift+enter=text:\x1b[13;2u
-
-env = APOD_DEV_ENV_AUTO_START=1

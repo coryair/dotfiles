@@ -168,3 +168,7 @@ if [ -f '/Users/cory.hernandez/google-cloud-sdk/completion.zsh.inc' ]; then . '/
 
 # Added by Antigravity CLI installer
 export PATH="/Users/cory.hernandez/.local/bin:$PATH"
+
+# Developer environment
+alias devenv="/Users/cory.hernandez/code/developer-env/bin/dev"
+alias devenv-rebuild="/Users/cory.hernandez/code/developer-env/bin/rebuild"
