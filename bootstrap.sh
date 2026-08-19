@@ -14,18 +14,19 @@ if [ "$(uname -m)" != "arm64" ]; then
   exit 1
 fi
 
-if ! command -v nix >/dev/null 2>&1; then
+nix_path=$(command -v nix || true)
+
+if [ -z "$nix_path" ]; then
   installer=/tmp/lix-installer.sh
   curl -fsSL https://install.lix.systems/lix -o "$installer"
   sh "$installer" install
+  nix_path=/nix/var/nix/profiles/default/bin/nix
 fi
 
-if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
-  # shellcheck source=/dev/null
-  . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+if [ ! -x "$nix_path" ]; then
+  echo "Nix installation completed, but the nix executable was not found." >&2
+  exit 1
 fi
-
-nix_path=$(command -v nix)
 
 sudo "$nix_path" \
   --extra-experimental-features "nix-command flakes" \
