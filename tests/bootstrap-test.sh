@@ -51,6 +51,10 @@ printf '%s\n' '#!/bin/sh' \
   'exec "$@"' > "$work_dir/bin/sudo"
 
 printf '%s\n' '#!/bin/sh' \
+  'if [ "$TEST_KERNEL" = "Darwin" ] && printf "%s" "$*" | grep -q -- "--flake /"; then' \
+  '  echo "error: \x27$TEST_RUNTIME_DIR#darwinConfigurations.machine.system\x27 is not a valid URL" >&2' \
+  '  exit 1' \
+  'fi' \
   'cp "$TEST_RUNTIME_DIR/flake.nix" "$TEST_CAPTURE_DIR/$TEST_KERNEL-flake.nix"' \
   'printf "%s\n" "$*" > "$TEST_CAPTURE_DIR/$TEST_KERNEL-args"' > "$work_dir/nix-template"
 
@@ -69,7 +73,7 @@ HOME="$work_dir/home" \
 PATH="$work_dir/bin:/usr/bin:/bin" \
   "$work_dir/bootstrap.sh"
 
-grep -F "run path:$work_dir -- switch --flake $work_dir/runtime#machine" \
+grep -F "run path:$work_dir -- switch --flake path:$work_dir/runtime#machine" \
   "$work_dir/captures/Darwin-args" >/dev/null
 grep -F 'darwinConfigurations.machine' "$work_dir/captures/Darwin-flake.nix" >/dev/null
 grep -F 'system = "aarch64-darwin";' "$work_dir/captures/Darwin-flake.nix" >/dev/null
@@ -88,7 +92,7 @@ HOME="$work_dir/home" \
 PATH="$work_dir/bin:/usr/bin:/bin" \
   "$work_dir/bootstrap.sh"
 
-grep -F "run path:$work_dir -- switch -b hm-backup --flake $work_dir/runtime#machine" \
+grep -F "run path:$work_dir -- switch -b hm-backup --flake path:$work_dir/runtime#machine" \
   "$work_dir/captures/Linux-args" >/dev/null
 grep -F 'homeConfigurations.machine' "$work_dir/captures/Linux-flake.nix" >/dev/null
 grep -F 'system = "x86_64-linux";' "$work_dir/captures/Linux-flake.nix" >/dev/null

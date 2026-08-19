@@ -100,10 +100,10 @@ if [ "$platform" = darwin ]; then
   sudo -H "$nix_path" \
     --extra-experimental-features "nix-command flakes" \
     run "path:$config_dir" -- \
-    switch --flake "$runtime_dir#machine"
+    switch --flake "path:$runtime_dir#machine"
 else
   "$nix_path" \
     --extra-experimental-features "nix-command flakes" \
     run "path:$config_dir" -- \
-    switch -b hm-backup --flake "$runtime_dir#machine"
+    switch -b hm-backup --flake "path:$runtime_dir#machine"
 fi
