@@ -17,9 +17,9 @@ Do not pass a machine name. The script detects:
 - macOS or Linux
 - Apple Silicon, ARM64 Linux, Intel Mac, or x86-64 Linux
 - The current username, home directory, and hostname
-- Whether Lix is absent, already active, or installed outside the current `PATH`
+- Whether Nix is absent, already active, or installed outside the current `PATH`
 
-On macOS it applies nix-darwin and Home Manager. On Linux it applies Home Manager. The Lix installer and macOS activation request sudo when needed; Linux Home Manager activation runs as the current user.
+On macOS it applies nix-darwin and Home Manager. On Linux it applies Home Manager. The Nix installer and macOS activation request sudo when needed; Linux Home Manager activation runs as the current user.
 
 ## What is managed everywhere
 
@@ -31,7 +31,7 @@ On macOS it applies nix-darwin and Home Manager. On Linux it applies Home Manage
 
 ## What is additionally managed on macOS
 
-- Nix and Lix daemon settings
+- Nix daemon settings
 - Dock, Finder, keyboard, login, and time-zone defaults
 - System Git and jq packages
 

@@ -15,7 +15,7 @@
   };
 
   nix = {
-    package = pkgs.lix;
+    package = pkgs.nix;
     channel.enable = false;
     settings = {
       experimental-features = [

@@ -73,9 +73,9 @@ if [ -z "$nix_path" ] && [ -x /nix/var/nix/profiles/default/bin/nix ]; then
 fi
 
 if [ -z "$nix_path" ]; then
-  installer="$runtime_dir/lix-installer.sh"
-  curl -fsSL https://install.lix.systems/lix -o "$installer"
-  sh "$installer" install
+  installer="$runtime_dir/nix-installer.sh"
+  curl -fsSL https://nixos.org/nix/install -o "$installer"
+  sh "$installer" --daemon
   nix_path=/nix/var/nix/profiles/default/bin/nix
 fi
 

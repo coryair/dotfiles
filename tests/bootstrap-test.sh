@@ -29,6 +29,7 @@ printf '%s\n' '#!/bin/sh' \
   'echo "$TEST_RUNTIME_DIR"' > "$work_dir/bin/mktemp"
 
 printf '%s\n' '#!/bin/sh' \
+  'printf "%s\n" "$*" > "$TEST_CAPTURE_DIR/curl-args"' \
   'while [ "$#" -gt 0 ]; do' \
   '  if [ "$1" = "-o" ]; then' \
   '    shift' \
@@ -38,6 +39,7 @@ printf '%s\n' '#!/bin/sh' \
   'done' > "$work_dir/bin/curl"
 
 printf '%s\n' '#!/bin/sh' \
+  'printf "%s\n" "$*" > "$TEST_CAPTURE_DIR/installer-args"' \
   "cp '$work_dir/nix-template' '$work_dir/installed-nix'" \
   "chmod +x '$work_dir/installed-nix'" > "$work_dir/bin/sh"
 
@@ -73,6 +75,8 @@ HOME="$work_dir/home" \
 PATH="$work_dir/bin:/usr/bin:/bin" \
   "$work_dir/bootstrap.sh"
 
+grep -F 'https://nixos.org/nix/install' "$work_dir/captures/curl-args" >/dev/null
+grep -F -- '--daemon' "$work_dir/captures/installer-args" >/dev/null
 grep -F "run path:$work_dir -- switch --flake path:$work_dir/runtime#machine" \
   "$work_dir/captures/Darwin-args" >/dev/null
 grep -F 'darwinConfigurations.machine' "$work_dir/captures/Darwin-flake.nix" >/dev/null
