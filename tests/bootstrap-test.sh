@@ -42,6 +42,11 @@ printf '%s\n' '#!/bin/sh' \
   "chmod +x '$work_dir/installed-nix'" > "$work_dir/bin/sh"
 
 printf '%s\n' '#!/bin/sh' \
+  'if [ "${1:-}" != "-H" ]; then' \
+  '  echo "warning: \$HOME (\x27$HOME\x27) is not owned by you" >&2' \
+  '  exit 1' \
+  'fi' \
+  'shift' \
   'echo "$TEST_KERNEL" >> "$TEST_CAPTURE_DIR/sudo-calls"' \
   'exec "$@"' > "$work_dir/bin/sudo"
 

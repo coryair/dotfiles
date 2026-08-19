@@ -97,7 +97,7 @@ fi
 } > "$runtime_dir/flake.nix"
 
 if [ "$platform" = darwin ]; then
-  sudo "$nix_path" \
+  sudo -H "$nix_path" \
     --extra-experimental-features "nix-command flakes" \
     run "path:$config_dir" -- \
     switch --flake "$runtime_dir#machine"
