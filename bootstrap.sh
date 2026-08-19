@@ -16,6 +16,10 @@ fi
 
 nix_path=$(command -v nix || true)
 
+if [ -z "$nix_path" ] && [ -x /nix/var/nix/profiles/default/bin/nix ]; then
+  nix_path=/nix/var/nix/profiles/default/bin/nix
+fi
+
 if [ -z "$nix_path" ]; then
   installer=/tmp/lix-installer.sh
   curl -fsSL https://install.lix.systems/lix -o "$installer"

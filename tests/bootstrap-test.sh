@@ -23,9 +23,11 @@ printf '%s\n' '#!/bin/sh' \
   '  shift' \
   'done' > "$work_dir/bin/curl"
 
-printf '%s\n' '#!/bin/sh' 'exit 0' > "$work_dir/bin/sh"
+printf '%s\n' '#!/bin/sh' \
+  "cp '$work_dir/nix-template' '$work_dir/installed-nix'" \
+  "chmod +x '$work_dir/installed-nix'" > "$work_dir/bin/sh"
 printf '%s\n' '#!/bin/sh' 'exec "$@"' > "$work_dir/bin/sudo"
-printf '%s\n' '#!/bin/sh' "printf '%s\\n' \"\$*\" > '$work_dir/nix-args'" > "$work_dir/installed-nix"
+printf '%s\n' '#!/bin/sh' "printf '%s\\n' \"\$*\" > '$work_dir/nix-args'" > "$work_dir/nix-template"
 
 printf '%s\n' \
   'check_nix_profiles() {' \
@@ -36,13 +38,20 @@ printf '%s\n' \
   'check_nix_profiles' > "$work_dir/nix-daemon.sh"
 
 chmod +x "$work_dir/bin/uname" "$work_dir/bin/curl" "$work_dir/bin/sh" \
-  "$work_dir/bin/sudo" "$work_dir/installed-nix"
+  "$work_dir/bin/sudo" "$work_dir/nix-template"
 
 sed \
   -e "s|/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh|$work_dir/nix-daemon.sh|g" \
   -e "s|/nix/var/nix/profiles/default/bin/nix|$work_dir/installed-nix|g" \
   "$repo_dir/bootstrap.sh" > "$work_dir/bootstrap.sh"
 chmod +x "$work_dir/bootstrap.sh"
+
+PATH="$work_dir/bin:/usr/bin:/bin" "$work_dir/bootstrap.sh" macos-vm
+
+grep -F "switch --flake $work_dir#macos-vm" "$work_dir/nix-args" >/dev/null
+
+printf '%s\n' '#!/bin/sh' 'exit 99' > "$work_dir/bin/curl"
+rm "$work_dir/nix-args"
 
 PATH="$work_dir/bin:/usr/bin:/bin" "$work_dir/bootstrap.sh" macos-vm
 
