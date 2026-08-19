@@ -1,19 +1,71 @@
 #!/bin/sh
 set -eu
 
-configuration="${1:-macos-vm}"
+if [ "$#" -ne 0 ]; then
+  echo "bootstrap.sh takes no arguments; it detects the current machine." >&2
+  exit 1
+fi
+
 config_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+runtime_dir=$(mktemp -d "${TMPDIR:-/tmp}/nix-bootstrap.XXXXXX")
+trap 'rm -rf "$runtime_dir"' EXIT
 
-if [ "$(uname -s)" != "Darwin" ]; then
-  echo "This bootstrap script must run on macOS." >&2
+kernel=$(uname -s)
+case "$kernel" in
+  Darwin)
+    platform=darwin
+    output_name=darwinConfigurations
+    ;;
+  Linux)
+    platform=linux
+    output_name=homeConfigurations
+    ;;
+  *)
+    echo "Unsupported operating system: $kernel" >&2
+    exit 1
+    ;;
+esac
+
+machine=$(uname -m)
+case "$machine" in
+  arm64 | aarch64) architecture=aarch64 ;;
+  x86_64 | amd64) architecture=x86_64 ;;
+  *)
+    echo "Unsupported architecture: $machine" >&2
+    exit 1
+    ;;
+esac
+
+if [ "$(id -u)" -eq 0 ]; then
+  echo "Run bootstrap.sh as your normal user. It requests sudo when needed." >&2
   exit 1
 fi
 
-if [ "$(uname -m)" != "arm64" ]; then
-  echo "This configuration currently supports Apple Silicon only." >&2
-  exit 1
+user_name=$(id -un)
+home_directory=${HOME:?HOME is not set}
+
+if [ "$platform" = darwin ] && command -v scutil >/dev/null 2>&1; then
+  host_name=$(scutil --get LocalHostName)
+else
+  host_name=$(hostname -s)
 fi
 
+validate_value() {
+  label=$1
+  value=$2
+
+  if printf '%s' "$value" | LC_ALL=C grep -q '[^A-Za-z0-9._/@+ -]'; then
+    echo "$label contains characters that cannot be written safely to the runtime Nix configuration." >&2
+    exit 1
+  fi
+}
+
+validate_value "Configuration path" "$config_dir"
+validate_value "User name" "$user_name"
+validate_value "Home directory" "$home_directory"
+validate_value "Host name" "$host_name"
+
+system="$architecture-$platform"
 nix_path=$(command -v nix || true)
 
 if [ -z "$nix_path" ] && [ -x /nix/var/nix/profiles/default/bin/nix ]; then
@@ -21,7 +73,7 @@ if [ -z "$nix_path" ] && [ -x /nix/var/nix/profiles/default/bin/nix ]; then
 fi
 
 if [ -z "$nix_path" ]; then
-  installer=/tmp/lix-installer.sh
+  installer="$runtime_dir/lix-installer.sh"
   curl -fsSL https://install.lix.systems/lix -o "$installer"
   sh "$installer" install
   nix_path=/nix/var/nix/profiles/default/bin/nix
@@ -32,7 +84,26 @@ if [ ! -x "$nix_path" ]; then
   exit 1
 fi
 
-sudo "$nix_path" \
-  --extra-experimental-features "nix-command flakes" \
-  run github:nix-darwin/nix-darwin/master#darwin-rebuild -- \
-  switch --flake "$config_dir#$configuration"
+{
+  printf '%s\n' '{'
+  printf '  inputs.config.url = "path:%s";\n' "$config_dir"
+  printf '%s\n' '  outputs = { config, ... }: {'
+  printf '    %s.machine = config.lib.mkConfiguration {\n' "$output_name"
+  printf '      system = "%s";\n' "$system"
+  printf '      userName = "%s";\n' "$user_name"
+  printf '      homeDirectory = "%s";\n' "$home_directory"
+  printf '      hostName = "%s";\n' "$host_name"
+  printf '%s\n' '    };' '  };' '}'
+} > "$runtime_dir/flake.nix"
+
+if [ "$platform" = darwin ]; then
+  sudo "$nix_path" \
+    --extra-experimental-features "nix-command flakes" \
+    run "path:$config_dir" -- \
+    switch --flake "$runtime_dir#machine"
+else
+  "$nix_path" \
+    --extra-experimental-features "nix-command flakes" \
+    run "path:$config_dir" -- \
+    switch -b hm-backup --flake "$runtime_dir#machine"
+fi

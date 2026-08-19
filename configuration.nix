@@ -1,14 +1,16 @@
 {
   pkgs,
   inputs,
+  system,
   hostName,
   userName,
+  homeDirectory,
   ...
 }:
 
 {
   nixpkgs = {
-    hostPlatform = "aarch64-darwin";
+    hostPlatform = system;
     config.allowUnfree = true;
   };
 
@@ -33,7 +35,7 @@
 
   users.users.${userName} = {
     name = userName;
-    home = "/Users/${userName}";
+    home = homeDirectory;
   };
 
   environment.systemPackages = with pkgs; [
@@ -73,7 +75,7 @@
     useGlobalPkgs = true;
     useUserPackages = true;
     backupFileExtension = "hm-backup";
-    extraSpecialArgs = { inherit userName; };
+    extraSpecialArgs = { inherit userName homeDirectory; };
     users.${userName} = import ./home.nix;
   };
 

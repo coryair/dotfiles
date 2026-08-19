@@ -1,9 +1,14 @@
-{ pkgs, userName, ... }:
+{
+  pkgs,
+  userName,
+  homeDirectory,
+  ...
+}:
 
 {
   home = {
     username = userName;
-    homeDirectory = "/Users/${userName}";
+    inherit homeDirectory;
     stateVersion = "26.05";
 
     packages = with pkgs; [
@@ -46,7 +51,7 @@
 
       shellAliases = {
         ll = "ls -lah";
-        rebuild-mac = "sudo darwin-rebuild switch --flake ~/.config/nix-darwin";
+        rebuild-config = "$HOME/.config/nix-darwin/bootstrap.sh";
       };
     };
   };

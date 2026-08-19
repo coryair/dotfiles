@@ -3,16 +3,30 @@
 set -eu
 
 repo_dir=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
-work_dir=$(mktemp -d "${TMPDIR:-/tmp}/macos-bootstrap-test.XXXXXX")
+work_dir=$(mktemp -d "${TMPDIR:-/tmp}/bootstrap-test.XXXXXX")
 trap 'rm -rf "$work_dir"' EXIT
 
-mkdir "$work_dir/bin"
+mkdir -p "$work_dir/bin" "$work_dir/config" "$work_dir/home" "$work_dir/captures"
+cp "$repo_dir/bootstrap.sh" "$work_dir/config/bootstrap.sh"
 
 printf '%s\n' '#!/bin/sh' 'case "$1" in' \
-  '  -s) echo Darwin ;;' \
-  '  -m) echo arm64 ;;' \
-  '  *) /usr/bin/uname "$@" ;;' \
+  '  -s) echo "$TEST_KERNEL" ;;' \
+  '  -m) echo "$TEST_ARCH" ;;' \
+  '  *) exit 1 ;;' \
   'esac' > "$work_dir/bin/uname"
+
+printf '%s\n' '#!/bin/sh' 'case "$1" in' \
+  '  -u) echo 1000 ;;' \
+  '  -un) echo cory ;;' \
+  '  *) exit 1 ;;' \
+  'esac' > "$work_dir/bin/id"
+
+printf '%s\n' '#!/bin/sh' 'echo test-host' > "$work_dir/bin/hostname"
+printf '%s\n' '#!/bin/sh' 'echo test-host' > "$work_dir/bin/scutil"
+
+printf '%s\n' '#!/bin/sh' \
+  'mkdir -p "$TEST_RUNTIME_DIR"' \
+  'echo "$TEST_RUNTIME_DIR"' > "$work_dir/bin/mktemp"
 
 printf '%s\n' '#!/bin/sh' \
   'while [ "$#" -gt 0 ]; do' \
@@ -26,33 +40,55 @@ printf '%s\n' '#!/bin/sh' \
 printf '%s\n' '#!/bin/sh' \
   "cp '$work_dir/nix-template' '$work_dir/installed-nix'" \
   "chmod +x '$work_dir/installed-nix'" > "$work_dir/bin/sh"
-printf '%s\n' '#!/bin/sh' 'exec "$@"' > "$work_dir/bin/sudo"
-printf '%s\n' '#!/bin/sh' "printf '%s\\n' \"\$*\" > '$work_dir/nix-args'" > "$work_dir/nix-template"
 
-printf '%s\n' \
-  'check_nix_profiles() {' \
-  '  if [ -n "$ZSH_VERSION" ]; then' \
-  '    :' \
-  '  fi' \
-  '}' \
-  'check_nix_profiles' > "$work_dir/nix-daemon.sh"
+printf '%s\n' '#!/bin/sh' \
+  'echo "$TEST_KERNEL" >> "$TEST_CAPTURE_DIR/sudo-calls"' \
+  'exec "$@"' > "$work_dir/bin/sudo"
 
-chmod +x "$work_dir/bin/uname" "$work_dir/bin/curl" "$work_dir/bin/sh" \
-  "$work_dir/bin/sudo" "$work_dir/nix-template"
+printf '%s\n' '#!/bin/sh' \
+  'cp "$TEST_RUNTIME_DIR/flake.nix" "$TEST_CAPTURE_DIR/$TEST_KERNEL-flake.nix"' \
+  'printf "%s\n" "$*" > "$TEST_CAPTURE_DIR/$TEST_KERNEL-args"' > "$work_dir/nix-template"
+
+chmod +x "$work_dir/config/bootstrap.sh" "$work_dir/bin/"* "$work_dir/nix-template"
 
 sed \
-  -e "s|/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh|$work_dir/nix-daemon.sh|g" \
   -e "s|/nix/var/nix/profiles/default/bin/nix|$work_dir/installed-nix|g" \
-  "$repo_dir/bootstrap.sh" > "$work_dir/bootstrap.sh"
+  "$work_dir/config/bootstrap.sh" > "$work_dir/bootstrap.sh"
 chmod +x "$work_dir/bootstrap.sh"
 
-PATH="$work_dir/bin:/usr/bin:/bin" "$work_dir/bootstrap.sh" macos-vm
+TEST_KERNEL=Darwin \
+TEST_ARCH=arm64 \
+TEST_RUNTIME_DIR="$work_dir/runtime" \
+TEST_CAPTURE_DIR="$work_dir/captures" \
+HOME="$work_dir/home" \
+PATH="$work_dir/bin:/usr/bin:/bin" \
+  "$work_dir/bootstrap.sh"
 
-grep -F "switch --flake $work_dir#macos-vm" "$work_dir/nix-args" >/dev/null
+grep -F "run path:$work_dir -- switch --flake $work_dir/runtime#machine" \
+  "$work_dir/captures/Darwin-args" >/dev/null
+grep -F 'darwinConfigurations.machine' "$work_dir/captures/Darwin-flake.nix" >/dev/null
+grep -F 'system = "aarch64-darwin";' "$work_dir/captures/Darwin-flake.nix" >/dev/null
+grep -F 'userName = "cory";' "$work_dir/captures/Darwin-flake.nix" >/dev/null
+grep -F "homeDirectory = \"$work_dir/home\";" "$work_dir/captures/Darwin-flake.nix" >/dev/null
+grep -F 'hostName = "test-host";' "$work_dir/captures/Darwin-flake.nix" >/dev/null
+grep -F 'Darwin' "$work_dir/captures/sudo-calls" >/dev/null
 
 printf '%s\n' '#!/bin/sh' 'exit 99' > "$work_dir/bin/curl"
-rm "$work_dir/nix-args"
 
-PATH="$work_dir/bin:/usr/bin:/bin" "$work_dir/bootstrap.sh" macos-vm
+TEST_KERNEL=Linux \
+TEST_ARCH=x86_64 \
+TEST_RUNTIME_DIR="$work_dir/runtime" \
+TEST_CAPTURE_DIR="$work_dir/captures" \
+HOME="$work_dir/home" \
+PATH="$work_dir/bin:/usr/bin:/bin" \
+  "$work_dir/bootstrap.sh"
 
-grep -F "switch --flake $work_dir#macos-vm" "$work_dir/nix-args" >/dev/null
+grep -F "run path:$work_dir -- switch -b hm-backup --flake $work_dir/runtime#machine" \
+  "$work_dir/captures/Linux-args" >/dev/null
+grep -F 'homeConfigurations.machine' "$work_dir/captures/Linux-flake.nix" >/dev/null
+grep -F 'system = "x86_64-linux";' "$work_dir/captures/Linux-flake.nix" >/dev/null
+
+if grep -F 'Linux' "$work_dir/captures/sudo-calls" >/dev/null; then
+  echo "Linux Home Manager activation must not run through sudo." >&2
+  exit 1
+fi
