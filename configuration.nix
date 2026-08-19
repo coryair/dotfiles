@@ -1,0 +1,82 @@
+{
+  pkgs,
+  inputs,
+  hostName,
+  userName,
+  ...
+}:
+
+{
+  nixpkgs = {
+    hostPlatform = "aarch64-darwin";
+    config.allowUnfree = true;
+  };
+
+  nix = {
+    package = pkgs.lix;
+    channel.enable = false;
+    settings = {
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      trusted-users = [
+        "root"
+        "@admin"
+      ];
+    };
+  };
+
+  networking.hostName = hostName;
+  networking.localHostName = hostName;
+  system.primaryUser = userName;
+
+  users.users.${userName} = {
+    name = userName;
+    home = "/Users/${userName}";
+  };
+
+  environment.systemPackages = with pkgs; [
+    git
+    jq
+  ];
+
+  programs.zsh.enable = true;
+  time.timeZone = "America/Denver";
+
+  system.defaults = {
+    NSGlobalDomain = {
+      ApplePressAndHoldEnabled = false;
+      InitialKeyRepeat = 15;
+      KeyRepeat = 2;
+      NSAutomaticSpellingCorrectionEnabled = false;
+    };
+
+    dock = {
+      autohide = true;
+      autohide-delay = 0.0;
+      show-recents = false;
+      tilesize = 48;
+    };
+
+    finder = {
+      AppleShowAllExtensions = true;
+      FXPreferredViewStyle = "Nlsv";
+      ShowPathbar = true;
+      ShowStatusBar = true;
+    };
+
+    loginwindow.GuestEnabled = false;
+  };
+
+  home-manager = {
+    useGlobalPkgs = true;
+    useUserPackages = true;
+    backupFileExtension = "hm-backup";
+    extraSpecialArgs = { inherit userName; };
+    users.${userName} = import ./home.nix;
+  };
+
+  system.configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
+  system.stateVersion = 7;
+}
