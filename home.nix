@@ -14,6 +14,7 @@
     packages = with pkgs; [
       bat
       fd
+      firefox
       fzf
       ripgrep
       tmux
